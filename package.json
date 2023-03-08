@@ -1,0 +1,31 @@
+{
+    "name": "typeform_block_tutorial",
+    "version": "1.0.0",
+    "main": "src/index.ts",
+    "scripts": {
+        "serve": "frontify-cli serve --entryPath src/index.ts",
+        "deploy": "frontify-cli deploy --entryPath src/index.ts",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@frontify/app-bridge": "3.0.0-beta.49",
+        "@frontify/fondue": "v12.0.0-beta.121",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "@typeform/embed-react": "2.18.0"
+    },
+    "devDependencies": {
+        "@frontify/eslint-config-react": "0.15.6",
+        "@frontify/frontify-cli": "5.3.9",
+        "@frontify/guideline-blocks-settings": "0.25.12",
+        "@types/react": "17.0.47",
+        "autoprefixer": "10.4.13",
+        "eslint": "8.35.0",
+        "postcss": "8.4.21",
+        "postcss-modules": "6.0.0",
+        "prettier": "2.8.4",
+        "typescript": "4.9.5"
+    }
+}
