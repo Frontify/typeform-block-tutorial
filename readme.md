@@ -1,33 +1,31 @@
 # Building a Typeform Content Block
 
-With Frontify's Brand SDK for Content Blocks, you can create your own blocks for our Brand Guidelines.
+With Frontify's Brand SDK for Content Blocks, you can create your own Content Blocks for your Guidelines.
 
-In this quick guide, you'll learn how to create a Typeform block that uses most of our Content Block features.
+In this quick guide, you'll learn how to create a simple Typeform block that uses some of the Brand SDK's features.
 
 ## Prerequisites
 
-Before starting, you should check out the general [Content Block documentation](https://developer.frontify.com/d/XFPCrGNrXQQM/content-blocks#/introduction/getting-started-1) to get a rough overview of how Content Blocks work. If you're at it, check out the [Typeform React Embed Library](https://developer.typeform.com/embed/react/) as well 🙂
+Before starting, you should check out the general [Content Block documentation](https://developer.frontify.com/d/XFPCrGNrXQQM/content-blocks) to get a rough overview of how Content Blocks work. If you're at it, check out the [Typeform React Embed Library](https://developer.typeform.com/embed/react/) as well 🙂
 
-You need to have Node >=14 installed, and a basic understanding of TypeScript would be good, too.
+You need to have Node >=16 installed, and a basic understanding of TypeScript would be good, too.
 
 ## Frontify-CLI
 
-One of the main features of Content Blocks is our `frontify-cli` tool. You can install it globally if you want:
+One of the main features of the Brand SDK is the `frontify-cli`. You can install it globally if you want:
 
 ```sh
 $ npm install -g @frontify/frontify-cli
-# Or
-$ yarn global add @frontify/frontify-cli
 ```
 
-Another way to use the tool would be to use `npx @frontify/frontify-cli` instead. Just replace the `frontify-cli` calls with `npx @frontify/frontify-cli`.
+Another (and preferred) way to use the tool is, to use `npx @frontify/frontify-cli@latest` instead. Just replace the `frontify-cli` calls with `npx @frontify/frontify-cli`. Going forward, in this tutorial we'll be using the `npx` approach.
 
 ## Scaffold a new Content Block
 
 Once the `frontify-cli` tool is installed, we can use it to scaffold our Typeform block:
 
 ```sh
-$ frontify-cli block create typeform_block
+$ npx @frontify/frontify-cli@latest block create typeform-block
 ```
 
 If everything worked out, you should have a new folder looking something like this:
@@ -35,23 +33,22 @@ If everything worked out, you should have a new folder looking something like th
 ```
 .
 ├── README.md
-├── cssModule.d.ts
 ├── manifest.json
 ├── package-lock.json
 ├── package.json
-├── postcss.config.js
-├── renovate.json
 ├── src
-│   ├── index.tsx
-│   ├── settings.ts
-│   └── style.module.css
+│   ├── Block.tsx
+│   ├── cssModule.d.ts
+│   ├── index.ts
+│   ├── settings.ts
+│   └── style.module.css
 └── tsconfig.json
 ```
 
 To finish the installation, we need to install all the npm packages:
 
 ```sh
-$ cd typeform_block
+$ cd typeform-block
 $ npm ci
 ```
 
@@ -62,6 +59,8 @@ Let's test-run our new Content Block to see if everything is working as expected
 ### Local Block Development block
 
 For our block to be displayed in our Guidelines, we need to add a "Local Block Development" block:
+
+Note: If you can't find the "Local Block Development" block, you probably don't have access to the Brand SDK and Marketplace yet. Please reach out to use on [Slack](https://join.slack.com/t/frontify-friends/shared_invite/zt-1lhu6lump-s18oTGI4EhHt8BKWfBAN_A) so we can activate it for you.
 
 ![Local Block Develoment block](https://cdn-assets-eu.frontify.com/s3/frontify-enterprise-files-eu/eyJwYXRoIjoid2VhcmVcL2FjY291bnRzXC82ZVwvNDAwMDM4OFwvcHJvamVjdHNcLzk4NFwvYXNzZXRzXC80NVwvMTQ5MDg0XC9kYTY1OWQzZWM1NTc0ZjVmMTMzMzczMmQ3MzhiMmNmMS0xNjQ5MDcwMTgyLnBuZyJ9:weare:Ou6SqL6rCEMH9YDjfVDpSjtOk8YL35-yyIBMLvDDhH4?width=1700&height=1023)
 
@@ -82,17 +81,11 @@ $ npm run serve
 Assuming that this worked, you’ll get a notification that the task is listening on port 5600:
 
 ```sh
-     ______               _   _  __
-    |  ____|             | | (_)/ _|
-    | |__ _ __ ___  _ __ | |_ _| |_ _   _
-    |  __| '__/ _ | '_ | __| |  _| | | |
-    | |  | | | (_) | | | | |_| | | | |_| |
-    |_|  |_|  ___/|_| |_|__|_|_|  __, |
-                                     __/ |
-                                    |___/
+> typeform-block@1.0.0 serve
+> frontify-cli serve --entryPath src/index.ts
 
-[14:53:58] Starting the development server...
-[14:53:58] Development server is listening on port 5600!
+[08:33:54] Starting the development server...
+  ➜  Local:   http://localhost:5600/
 . . .
 ```
 
@@ -102,7 +95,7 @@ And the Guidelines should now show the contents of our block:
 
 If you don't see the violet message, try refreshing the page.
 
-🎉 Cool, we're now ready to start our Typeform block.
+🎉 Cool, we're now ready to start working on our Typeform block.
 
 ## Adding the Typeform Library
 
@@ -112,46 +105,35 @@ Typeform offers multiple ways to embed their forms in our projects. But since th
 $ npm install @typeform/embed-react --save
 ```
 
-## Preparing the `index.tsx` file
+## Preparing the `Block.tsx` file
 
-Now that we have everything ready for our Typeform block, we need to set up the part of our block that gets rendered in the Guidelines. For this, we modify the `index.ts` file in the `src/` directory:
+Now that we have everything ready for our Typeform block, we need to set up the part of our block that gets rendered in the Guidelines. For this, we modify the `Block.tsx` file in the `src/` directory:
 
-```ts
-import { ReactElement } from 'react';
-import { Widget, PopupButton, SliderButton } from '@typeform/embed-react';
-import { AppBridgeNative, useBlockSettings, useEditorState } from '@frontify/app-bridge';
+```tsx
+import { FC } from 'react';
+import { PopupButton, SliderButton, Widget } from '@typeform/embed-react';
+import { useBlockSettings, useEditorState } from '@frontify/app-bridge';
+import type { BlockProps } from '@frontify/guideline-blocks-settings';
 import styles from './style.module.css';
+import type { Settings } from './types';
 
-type Props = {
-    appBridge: AppBridgeNative;
-};
-
-type Settings = {
-    'embed-style': string;
-    'form-id': string;
-    isHeightCustom: boolean;
-    heightCustom: string;
-    heightSimple: string;
-    buttonText: string;
-};
-
-const Placeholder = (): ReactElement => (
+const Placeholder: FC = () => (
     <div>
         <p className={styles.placeholder}>Please enter a Typeform form id in the block settings.</p>
     </div>
 );
 
-export default function TypeformBlock({ appBridge }: Props): ReactElement {
-    const isEditing = useEditorState();
+export const TypeformBlock: FC<BlockProps> = ({ appBridge }) => {
+    const isEditing = useEditorState(appBridge);
     const [blockSettings] = useBlockSettings<Settings>(appBridge);
 
-    if (!blockSettings['form-id']) {
+    if (!blockSettings.formId) {
         return <Placeholder />;
     }
 
     const renderEmbed = () => {
-        switch (blockSettings['embed-style']) {
-            case 'standard':
+        switch (blockSettings.embedStyle) {
+            case 'embed':
                 return (
                     <Widget
                         style={{
@@ -159,30 +141,37 @@ export default function TypeformBlock({ appBridge }: Props): ReactElement {
                                 ? blockSettings.heightCustom
                                 : blockSettings.heightSimple,
                         }}
-                        id={blockSettings['form-id']}
-                        enableSandbox={!isEditing}
+                        id={blockSettings.formId}
+                        enableSandbox={isEditing}
+                        hideHeaders={!blockSettings.header}
+                        hideFooter={!blockSettings.footer}
+                        opacity={blockSettings.transparent ? 0 : 100}
                     />
                 );
 
-            case 'popupButton':
+            case 'popup':
                 return (
                     <PopupButton
                         size={100}
                         opacity={100}
-                        className="tw-outline-none tw-relative tw-flex tw-items-center tw-justify-center tw-border-0 tw-rounded tw-cursor-pointer tw-font-sans tw-transition-colors tw-px-4 tw-h-9 tw-text-s tw-text-white tw-bg-black-90 hover:tw-bg-black-100 active:tw-bg-black-superdark dark:tw-text-black dark:tw-bg-white dark:hover:tw-bg-black-10 dark:active:tw-bg-black-20"
-                        id={blockSettings['form-id']}
-                        enableSandbox={!isEditing}
+                        className="a-button-primary"
+                        id={blockSettings.formId}
+                        enableSandbox={isEditing}
+                        hideHeaders={!blockSettings.header}
+                        hideFooter={!blockSettings.footer}
                     >
                         {blockSettings.buttonText}
                     </PopupButton>
                 );
 
-            case 'sliderButton':
+            case 'sidePanel':
                 return (
                     <SliderButton
-                        className="tw-outline-none tw-relative tw-flex tw-items-center tw-justify-center tw-border-0 tw-rounded tw-cursor-pointer tw-font-sans tw-transition-colors tw-px-4 tw-h-9 tw-text-s tw-text-white tw-bg-black-90 hover:tw-bg-black-100 active:tw-bg-black-superdark dark:tw-text-black dark:tw-bg-white dark:hover:tw-bg-black-10 dark:active:tw-bg-black-20"
-                        id={blockSettings['form-id']}
-                        enableSandbox={!isEditing}
+                        className="a-button-primary"
+                        id={blockSettings.formId}
+                        enableSandbox={isEditing}
+                        hideHeaders={!blockSettings.header}
+                        hideFooter={!blockSettings.footer}
                     >
                         {blockSettings.buttonText}
                     </SliderButton>
@@ -194,19 +183,22 @@ export default function TypeformBlock({ appBridge }: Props): ReactElement {
     };
 
     return <div className={styles.container}>{renderEmbed()}</div>;
-}
+};
+
 ```
 
 Let’s talk about the contents of this file. First, we import all the necessary bindings we need for the presentational part of the block:
 
 ```ts
-import { ReactElement } from 'react';
-import { Widget, PopupButton, SliderButton } from '@typeform/embed-react';
-import { AppBridgeNative, useBlockSettings, useEditorState } from '@frontify/app-bridge';
+import { FC } from 'react';
+import { PopupButton, SliderButton, Widget } from '@typeform/embed-react';
+import { useBlockSettings, useEditorState } from '@frontify/app-bridge';
+import type { BlockProps } from '@frontify/guideline-blocks-settings';
+import type { Settings } from './types';
 import styles from './style.module.css';
 ```
 
-We'll be using the `Widget`, `PopupButton`, `SliderButton`, and `Sidetab` components from the Typekit library. Besides that, we need to include the Frontify App Bridge to enable communication between the presentational part of the block and its settings. And lastly, we import some CSS, let's create that file right now, in the `src/` directory:
+First, we import the `FC` function from React to export a function component. We'll be using the `PopupButton`, `SliderButton`, and`Widget` components from the Typekit library. Besides that, we need to include the `useBlockSettings` hook to access the settings sidebar and the `useEditorState` hook to know if we're in edit state. Further, we need the `BlockProps` and `Settings` types for our function, and lastly, we import some CSS. Let's create that file right now, in the `src/` directory:
 
 ```css
 .placeholder {
@@ -221,17 +213,22 @@ We'll be using the `Widget`, `PopupButton`, `SliderButton`, and `Sidetab` compon
 Next, we define some types we’re going to need for the block:
 
 ```ts
-type Props = {
-    appBridge: AppBridgeNative;
-};
+export enum BlockHeight {
+    Small = '200px',
+    Medium = '400px',
+    Large = '800px',
+}
 
-type Settings = {
-    'embed-style': string;
-    'form-id': string;
+export type Settings = {
+    embedStyle: string;
+    formId: string;
     isHeightCustom: boolean;
     heightCustom: string;
     heightSimple: string;
     buttonText: string;
+    header: boolean;
+    footer: boolean;
+    transparent: boolean;
 };
 ```
 
@@ -240,7 +237,7 @@ This is not strictly necessary, but since we're using TypeScript, it makes sense
 Because we have an initial state, we need to prepare a React element to render in those cases:
 
 ```ts
-const Placeholder = (): ReactElement => (
+const Placeholder: FC = () => (
     <div>
         <p className={styles.placeholder}>Please enter a Typeform form id in the block settings.</p>
     </div>
@@ -250,28 +247,28 @@ const Placeholder = (): ReactElement => (
 Now we’re getting to the exciting part, the main component:
 
 ```ts
-export default function TypeformBlock({ appBridge }: Props): ReactElement {
-    const isEditing = useEditorState();
+export const TypeformBlock: FC<BlockProps> = ({ appBridge }) => {
+    const isEditing = useEditorState(appBridge);
     const [blockSettings] = useBlockSettings<Settings>(appBridge);
     . . .
 ```
 
-Here, we're defining the block itself that we're going to export. We're using the `useEditorState()` hook and as well `blockSettings`, which we'll be using to handle the edit-state of the block and to pull in the settings for the block itself.
+Here, we're defining the block itself that we're going to export. We're using the `useEditorState()` and `useBlockSettings` hooks, which we'll be using to handle the edit-state of the block and to pull in the settings for the block itself.
 
 ```ts
-if (!blockSettings['form-id']) {
+if (!blockSettings.formId) {
     return <Placeholder />;
 }
 ```
 
-In case we haven't set a `form-id` in the settings, we want to render the `<Placeholder />` component defined before in the file. Keep in mind that we haven't set up any settings yet. So the `form-id` will always be undefined.
+In case we haven't set a `formId` in the settings, we want to render the `<Placeholder />` component defined before in the file. Keep in mind that we haven't set up any settings yet. So the `formId` will always be undefined.
 
 Finally, we render the actual Typeform components, depending on what has been set up through the settings:
 
 ```ts
 const renderEmbed = () => {
-    switch (blockSettings['embed-style']) {
-        case 'standard':
+    switch (blockSettings.embedStyle) {
+        case 'embed':
             return (
                 <Widget
                     style={{
@@ -279,30 +276,37 @@ const renderEmbed = () => {
                             ? blockSettings.heightCustom
                             : blockSettings.heightSimple,
                     }}
-                    id={blockSettings['form-id']}
-                    enableSandbox={!isEditing}
+                    id={blockSettings.formId}
+                    enableSandbox={isEditing}
+                    hideHeaders={!blockSettings.header}
+                    hideFooter={!blockSettings.footer}
+                    opacity={blockSettings.transparent ? 0 : 100}
                 />
             );
 
-        case 'popupButton':
+        case 'popup':
             return (
                 <PopupButton
                     size={100}
                     opacity={100}
-                    className="tw-outline-none tw-relative tw-flex tw-items-center tw-justify-center tw-border-0 tw-rounded tw-cursor-pointer tw-font-sans tw-transition-colors tw-px-4 tw-h-9 tw-text-s tw-text-white tw-bg-black-90 hover:tw-bg-black-100 active:tw-bg-black-superdark dark:tw-text-black dark:tw-bg-white dark:hover:tw-bg-black-10 dark:active:tw-bg-black-20"
-                    id={blockSettings['form-id']}
-                    enableSandbox={!isEditing}
+                    className="a-button-primary"
+                    id={blockSettings.formId}
+                    enableSandbox={isEditing}
+                    hideHeaders={!blockSettings.header}
+                    hideFooter={!blockSettings.footer}
                 >
                     {blockSettings.buttonText}
                 </PopupButton>
             );
 
-        case 'sliderButton':
+        case 'sidePanel':
             return (
                 <SliderButton
-                    className="tw-outline-none tw-relative tw-flex tw-items-center tw-justify-center tw-border-0 tw-rounded tw-cursor-pointer tw-font-sans tw-transition-colors tw-px-4 tw-h-9 tw-text-s tw-text-white tw-bg-black-90 hover:tw-bg-black-100 active:tw-bg-black-superdark dark:tw-text-black dark:tw-bg-white dark:hover:tw-bg-black-10 dark:active:tw-bg-black-20"
-                    id={blockSettings['form-id']}
-                    enableSandbox={!isEditing}
+                    className="a-button-primary"
+                    id={blockSettings.formId}
+                    enableSandbox={isEditing}
+                    hideHeaders={!blockSettings.header}
+                    hideFooter={!blockSettings.footer}
                 >
                     {blockSettings.buttonText}
                 </SliderButton>
@@ -329,41 +333,47 @@ Now that we set up the presentational part of the block we can run the `npm run 
 Let's do the same thing we did with the `index.ts` file for the `settings.ts` file:
 
 ```ts
-import { IconEnum, DropdownSize } from '@frontify/arcade';
 import { BlockHeight } from './types';
-import { BlockSettings } from '@frontify/guideline-blocks-settings';
+import {
+    DropdownSize,
+    IconEnum,
+    appendUnit,
+    defineSettings,
+    numericalOrPixelRule,
+} from '@frontify/guideline-blocks-settings';
 
-const HEIGHT_DEFAULT_VALUE = BlockHeight.Small;
+export const HEIGHT_DEFAULT_VALUE = BlockHeight.Small;
 
-const settings: BlockSettings = {
+export const settings = defineSettings({
     main: [
         {
-            id: 'embed-style',
+            id: 'embedStyle',
             type: 'dropdown',
-            defaultValue: 'standard',
+            label: 'Embed Type',
+            defaultValue: 'embed',
             size: DropdownSize.Large,
             choices: [
                 {
-                    value: 'standard',
-                    icon: IconEnum.FigureTextBottom,
-                    label: 'Standard',
+                    value: 'embed',
+                    icon: IconEnum.MarkArea,
+                    label: 'Embed',
                 },
                 {
-                    value: 'popupButton',
-                    icon: IconEnum.Button,
-                    label: 'Popup Button',
+                    value: 'popup',
+                    icon: IconEnum.TextBoxStack,
+                    label: 'Popup',
                 },
                 {
-                    value: 'sliderButton',
-                    icon: IconEnum.Button,
-                    label: 'Slider Button',
+                    value: 'sidePanel',
+                    icon: IconEnum.SidebarRight,
+                    label: 'Side Panel',
                 },
-            ]
-        }
+            ],
+        },
     ],
     content: [
         {
-            id: 'form-id',
+            id: 'formId',
             type: 'input',
             label: 'Typeform Form ID',
             info: 'You can find <form-id> from the public URL of your form: https://form.typeform.com/to/<form-id>',
@@ -372,23 +382,44 @@ const settings: BlockSettings = {
             id: 'buttonText',
             label: 'Button Label',
             type: 'input',
-            placeholder: 'Open',
-            defaultValue: 'Open',
-            show: (bundle: any): boolean => ['popupButton', 'sliderButton'].includes(bundle.getBlock('embed-style')?.value)
-        }
+            placeholder: 'Open Form',
+            defaultValue: 'Open Form',
+            show: (bundle) =>
+                bundle.getBlock('embedStyle')?.value === 'popup' ||
+                bundle.getBlock('embedStyle')?.value === 'sidePanel',
+        },
     ],
     layout: [
         {
-            id: 'hideHeader',
+            id: 'header',
             type: 'switch',
-            label: 'Hide header',
+            label: 'Header',
+            info: 'Controls the header that appears when you have a question group, or a long question',
             defaultValue: false,
         },
         {
-            id: 'hideProgressBar',
+            id: 'footer',
             type: 'switch',
-            label: 'Hide progress bar',
-            defaultValue: false,
+            label: 'Footer',
+            info: 'Controls the visiblity of the form progress bar and navigation buttons',
+            defaultValue: true,
+        },
+        {
+            id: 'position',
+            type: 'slider',
+            label: 'Slider position',
+            defaultValue: 'right',
+            choices: [
+                {
+                    value: 'left',
+                    label: 'Left',
+                },
+                {
+                    value: 'right',
+                    label: 'Right',
+                },
+            ],
+            show: (bundle) => bundle.getBlock('embedStyle')?.value === 'sidePanel',
         },
         {
             id: 'isHeightCustom',
@@ -396,26 +427,15 @@ const settings: BlockSettings = {
             label: 'Block Height',
             switchLabel: 'Custom',
             defaultValue: false,
-            show: (bundle: any): boolean => bundle.getBlock('embed-style')?.value === 'standard',
+            show: (bundle) => bundle.getBlock('embedStyle')?.value === 'embed',
             info: 'Determines the block height.',
             on: [
                 {
                     id: 'heightCustom',
                     type: 'input',
                     placeholder: '100px',
-                    rules: [
-                        {
-                            errorMessage: "Please use a numerical value with or without 'px'",
-                            validate: (value: string) => value.match(/^(?:-?\d+)(?:px)?$/g) !== null,
-                        }
-                    ],
-                    onChange: (bundle: any): void => {
-                        const blockHeight = Number(bundle.getBlock('heightCustom')?.value);
-
-                        if (!Number.isNaN(blockHeight)) {
-                            bundle.setBlockValue('heightCustom', `${blockHeight}px`);
-                        }
-                    },
+                    rules: [numericalOrPixelRule],
+                    onChange: (bundle) => appendUnit(bundle, 'heightCustom'),
                 },
             ],
             off: [
@@ -443,91 +463,73 @@ const settings: BlockSettings = {
     ],
     style: [
         {
-            id: 'opacity',
-            label: 'Background transparency',
-            type: 'input',
-            placeholder: '0%',
-            show: (bundle: any): boolean => bundle.getBlock('embed-style')?.value === 'standard',
-            rules: [
-                {
-                    errorMessage: "Please use a numerical value with or without '%'",
-                    validate: (value: string) => value.match(/^(?:-?\d+)(?:%)?$/g) !== null,
-                }
-            ],
-            onChange: (bundle: any): void => {
-                const blockOpacity = Number(bundle.getBlock('opacity')?.value);
-
-                if (!Number.isNaN(blockOpacity)) {
-                    bundle.setBlockValue('heightCustom', `${blockOpacity}%`);
-                }
-            },
-        }
-    ]
-};
-
-export default settings;
+            id: 'transparent',
+            label: 'Transparent Background',
+            info: 'Enable or disable the background of the form',
+            type: 'switch',
+            show: (bundle) => bundle.getBlock('embedStyle')?.value === 'embed',
+            defaultValue: false,
+        },
+    ],
+});
 ```
 
-Like with the `index.ts` file, we’re importing all the necessary bindings:
+Like with the `Block.tsx` file, we’re importing all the necessary bindings:
 
 ```ts
-import { IconEnum, DropdownSize } from '@frontify/arcade';
 import { BlockHeight } from './types';
-import { BlockSettings } from '@frontify/guideline-blocks-settings';
+import {
+    DropdownSize,
+    IconEnum,
+    appendUnit,
+    defineSettings,
+    numericalOrPixelRule,
+} from '@frontify/guideline-blocks-settings';
 ```
 
-Let’s create the needed `types.ts` file:
-
-```ts
-export enum BlockHeight {
-    Small = '360px',
-    Medium = '600px',
-    Large = '960px',
-}
-```
-
-In this file, we're exporting the block-heights we'll need for the settings.
+We need the types for the `BlockHeight` and a couple of helpers and enums from the `@frontify/guideline-blocks-settings` package.
 
 The settings are split up in several different sections, which mirror the sections we have available in the Guidelines:
 
 ```ts
-const settings: BlockSettings = {
+export const settings = defineSettings({
     main: [. . .],
     content: [. . .],
     layout: [. . .],
     style: [. . .]
-};
+});
 ```
 
-For more instructions on how to use the different sections and for what use-cases they might fit, check out the in-depth [documentation](https://developer.frontify.com/document/1366#/details-concepts/block-settings-1).
+For more instructions on how to use the different sections and for what use-cases they might fit, check out the in-depth [documentation](https://developer.frontify.com/d/XFPCrGNrXQQM/content-blocks#/details-concepts-1/block-settings-1).
 
 In our case, we use the `main` section for the way we’re going to display the Typeform component:
 
 ```ts
 main: [
     {
-        id: 'embed-style',
+        id: 'embedStyle',
         type: 'dropdown',
-        defaultValue: 'standard',
+        label: 'Embed Type',
+        defaultValue: 'embed',
         size: DropdownSize.Large,
         choices: [
             {
-                value: 'standard',
-                icon: IconEnum.FigureTextBottom,
-                label: 'Standard',
+                value: 'embed',
+                icon: IconEnum.MarkArea,
+                label: 'Embed',
             },
             {
-                value: 'popupButton',
-                icon: IconEnum.Button,
-                label: 'Popup Button',
+                value: 'popup',
+                icon: IconEnum.TextBoxStack,
+                label: 'Popup',
             },
             {
-                value: 'sliderButton',
-                icon: IconEnum.Button,
-                label: 'Slider Button',
+                value: 'sidePanel',
+                icon: IconEnum.SidebarRight,
+                label: 'Side Panel',
             },
-        ]
-    }
+        ],
+    },
 ],
 ```
 
@@ -538,7 +540,7 @@ The `content` section is pretty basic, except for the `show` property on the sec
 ```ts
 content: [
     {
-        id: 'form-id',
+        id: 'formId',
         type: 'input',
         label: 'Typeform Form ID',
         info: 'You can find <form-id> from the public URL of your form: https://form.typeform.com/to/<form-id>',
@@ -547,30 +549,51 @@ content: [
         id: 'buttonText',
         label: 'Button Label',
         type: 'input',
-        placeholder: 'Open',
-        defaultValue: 'Open',
-        show: (bundle: any): boolean => ['popupButton', 'sliderButton'].includes(bundle.getBlock('embed-style')?.value)
-    }
+        placeholder: 'Open Form',
+        defaultValue: 'Open Form',
+        show: (bundle) =>
+            bundle.getBlock('embedStyle')?.value === 'popup' ||
+            bundle.getBlock('embedStyle')?.value === 'sidePanel',
+    },
 ],
 ```
 
-The `show` property determines if a setting item will be displayed. In this case, we'll only display the Button Label setting if the user chose the `popupButton` or the `sliderButton` version of the Typeform integration in the `main` section.
+The `show` property determines if a setting item will be displayed. In this case, we'll only display the Button Label setting if the user chose the `popup` or the `sidePanel` version of the Typeform integration in the `main` section.
 
 The `layout` section is a little bit more complex because it contains a switch setting:
 
 ```ts
 layout: [
     {
-        id: 'hideHeader',
+        id: 'header',
         type: 'switch',
-        label: 'Hide header',
+        label: 'Header',
+        info: 'Controls the header that appears when you have a question group, or a long question',
         defaultValue: false,
     },
     {
-        id: 'hideProgressBar',
+        id: 'footer',
         type: 'switch',
-        label: 'Hide progress bar',
-        defaultValue: false,
+        label: 'Footer',
+        info: 'Controls the visiblity of the form progress bar and navigation buttons',
+        defaultValue: true,
+    },
+    {
+        id: 'position',
+        type: 'slider',
+        label: 'Slider position',
+        defaultValue: 'right',
+        choices: [
+            {
+                value: 'left',
+                label: 'Left',
+            },
+            {
+                value: 'right',
+                label: 'Right',
+            },
+        ],
+        show: (bundle) => bundle.getBlock('embedStyle')?.value === 'sidePanel',
     },
     {
         id: 'isHeightCustom',
@@ -578,26 +601,15 @@ layout: [
         label: 'Block Height',
         switchLabel: 'Custom',
         defaultValue: false,
-        show: (bundle: any): boolean => bundle.getBlock('embed-style')?.value === 'standard',
+        show: (bundle) => bundle.getBlock('embedStyle')?.value === 'embed',
         info: 'Determines the block height.',
         on: [
             {
                 id: 'heightCustom',
                 type: 'input',
                 placeholder: '100px',
-                rules: [
-                    {
-                        errorMessage: "Please use a numerical value with or without 'px'",
-                        validate: (value: string) => value.match(/^(?:-?\d+)(?:px)?$/g) !== null,
-                    }
-                ],
-                onChange: (bundle: any): void => {
-                    const blockHeight = Number(bundle.getBlock('heightCustom')?.value);
-
-                    if (!Number.isNaN(blockHeight)) {
-                        bundle.setBlockValue('heightCustom', `${blockHeight}px`);
-                    }
-                },
+                rules: [numericalOrPixelRule],
+                onChange: (bundle) => appendUnit(bundle, 'heightCustom'),
             },
         ],
         off: [
@@ -625,42 +637,43 @@ layout: [
 ],
 ```
 
-If you have a look at `isHeightCustom`, you'll see that we use the `on` and `off` properties. You can think of them as nested settings that will be displayed depending on the state of the `switch` setting. The [documentation](https://developer.frontify.com/document/1366#/details-concepts/block-settings-1) explains that behavior pretty well.
+If you have a look at `isHeightCustom`, you'll see that we use the `on` and `off` properties. You can think of them as nested settings that will be displayed depending on the state of the `switch` setting. The [documentation](https://developer.frontify.com/d/XFPCrGNrXQQM/content-blocks#/details-concepts-1/block-settings-1) explains that behavior pretty well.
 
 The last setting is the `style` part:
 
 ```ts
 style: [
     {
-        id: 'opacity',
-        label: 'Background transparency',
-        type: 'input',
-        placeholder: '0%',
-        show: (bundle: any): boolean => bundle.getBlock('embed-style')?.value === 'standard',
-        rules: [
-            {
-                errorMessage: "Please use a numerical value with or without '%'",
-                validate: (value: string) => value.match(/^(?:-?\d+)(?:%)?$/g) !== null,
-            }
-        ],
-        onChange: (bundle: any): void => {
-            const blockOpacity = Number(bundle.getBlock('opacity')?.value);
-
-            if (!Number.isNaN(blockOpacity)) {
-                bundle.setBlockValue('heightCustom', `${blockOpacity}%`);
-            }
-        },
-    }
-]
+        id: 'transparent',
+        label: 'Transparent Background',
+        info: 'Enable or disable the background of the form',
+        type: 'switch',
+        show: (bundle) => bundle.getBlock('embedStyle')?.value === 'embed',
+        defaultValue: false,
+    },
+],
 ```
 
-Here we use a custom rule to make sure the entered value is a numerical one (since we'll use that value for transparency).
+It again contains a `show` property to determine if we want to show the setting (in this case only if the `embed` style was chosen).
 
-And that's basically it. Let's run `npm run serve` again and open the settings for our block:
+## The `index.ts` file
+There is one important file left that we haven't talked about: the `index.ts` file. You can think of the `index.ts` file as the cooridnatior that brings everything together and let's the `frontify-cli` know how to actually build our Content Block:
 
-![The block settings](https://cdn-assets-eu.frontify.com/s3/frontify-enterprise-files-eu/eyJwYXRoIjoid2VhcmVcL2FjY291bnRzXC82ZVwvNDAwMDM4OFwvcHJvamVjdHNcLzk4NFwvYXNzZXRzXC9mYlwvMTQ5MDg2XC9jZmYzMTA1ODE1YmI4ZjkyOTExMzE5MjRjZDg4NGIwMy0xNjQ5MDcwMTgyLnBuZyJ9:weare:MyBmRq4tYYmwE8cB6GVAZbMMrSlI7bfmQqVKaO6jNak?width=1700&height=1014)
+```ts
+import { defineBlock } from '@frontify/guideline-blocks-settings';
 
-If you use `GKcYunMz` as the Form ID, you should see the Typeform form getting loaded in the Guide Lines:
+import { TypeformBlock } from './Block';
+import { settings } from './settings';
+
+export default defineBlock({
+    block: TypeformBlock,
+    settings,
+});
+```
+
+Besides importing the `defineBlock` function from the `@frontify/guideline-blocks-settings`, we as well need the actual block and settings. We're importing those and pass them to the `defineBlock` function. Now the `frontify-cli` know where to find the relevant files.
+
+And that's basically it. Let's run `npm run serve` again and open the settings for our block. If you use `GKcYunMz` as the Form ID, you should see the Typeform form getting loaded in the Guide Lines:
 
 ![The final Typeform block](https://cdn-assets-eu.frontify.com/s3/frontify-enterprise-files-eu/eyJwYXRoIjoid2VhcmVcL2FjY291bnRzXC82ZVwvNDAwMDM4OFwvcHJvamVjdHNcLzk4NFwvYXNzZXRzXC8wMVwvMTQ5MDg3XC9iNzQ4ZmFhNmNhOTg0ZmQ0YjEzMmJhNTE3OGQ1ZWRlNy0xNjQ5MDcwMTgyLnBuZyJ9:weare:SvuUvaDBCW0yJnHpPo74swa39ti5KPYQSJJG_2kFNwg?width=1700&height=1187)
 

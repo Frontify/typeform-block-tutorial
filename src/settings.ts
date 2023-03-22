@@ -15,7 +15,7 @@ export const settings = defineSettings({
             id: 'embedStyle',
             type: 'dropdown',
             label: 'Embed Type',
-            defaultValue: 'standard',
+            defaultValue: 'embed',
             size: DropdownSize.Large,
             choices: [
                 {

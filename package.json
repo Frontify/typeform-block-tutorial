@@ -10,22 +10,22 @@
         "typecheck": "tsc --noEmit"
     },
     "dependencies": {
-        "@frontify/app-bridge": "3.0.0-beta.49",
+        "@frontify/app-bridge": "3.0.0-beta.56",
         "@frontify/fondue": "v12.0.0-beta.121",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
-        "@typeform/embed-react": "2.18.0"
+        "@typeform/embed-react": "2.19.0"
     },
     "devDependencies": {
-        "@frontify/eslint-config-react": "0.15.6",
+        "@frontify/eslint-config-react": "0.15.7",
         "@frontify/frontify-cli": "5.3.9",
         "@frontify/guideline-blocks-settings": "0.25.12",
         "@types/react": "17.0.47",
-        "autoprefixer": "10.4.13",
-        "eslint": "8.35.0",
+        "autoprefixer": "10.4.14",
+        "eslint": "8.36.0",
         "postcss": "8.4.21",
         "postcss-modules": "6.0.0",
-        "prettier": "2.8.4",
-        "typescript": "4.9.5"
+        "prettier": "2.8.6",
+        "typescript": "5.0.2"
     }
 }
